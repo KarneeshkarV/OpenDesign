@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Chat } from "@/components/chat";
+import { cn } from "@/lib/utils";
 
 type HealthResponse = {
   service: string;
@@ -7,7 +9,8 @@ type HealthResponse = {
 };
 
 const apiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ?? "http://127.0.0.1:8787";
+  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ??
+  "http://127.0.0.1:8787";
 
 export default function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
@@ -44,37 +47,39 @@ export default function App() {
   }, []);
 
   return (
-    <main className="shell">
-      <section className="panel">
-        <p className="eyebrow">Cloudflare + Bun + Turbo</p>
-        <h1>OpenDesign Monorepo</h1>
-        <p className="lede">
-          A starter with a Cloudflare Worker backend and a Cloudflare Pages frontend.
-        </p>
-
-        <div className="grid">
-          <article className="card">
-            <span className="label">Frontend</span>
-            <strong>Cloudflare Pages</strong>
-            <p>React + Vite app in <code>apps/pages</code>.</p>
-          </article>
-
-          <article className="card">
-            <span className="label">Backend</span>
-            <strong>Cloudflare Worker</strong>
-            <p>API entrypoint in <code>apps/backend/src/index.ts</code>.</p>
-          </article>
+    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+      <header className="sticky top-0 z-10 flex h-12 shrink-0 items-center justify-between border-b border-border/40 bg-background/80 px-4 backdrop-blur">
+        <span className="text-[13px] font-semibold tracking-tight">
+          OpenDesign
+        </span>
+        <div
+          className="flex items-center gap-2 text-[11px] text-muted-foreground"
+          title={
+            health
+              ? `backend ok · ${new Date(health.timestamp).toLocaleTimeString()}`
+              : error
+                ? `backend unavailable: ${error}`
+                : "checking backend..."
+          }
+        >
+          <span
+            className={cn(
+              "size-1.5 rounded-full",
+              health
+                ? "bg-emerald-400"
+                : error
+                  ? "bg-destructive"
+                  : "bg-muted-foreground/60"
+            )}
+          />
+          <span className="hidden sm:inline">
+            {health ? "online" : error ? "offline" : "connecting"}
+          </span>
         </div>
-
-        <section className="status">
-          <h2>API status</h2>
-          {health ? (
-            <pre>{JSON.stringify(health, null, 2)}</pre>
-          ) : (
-            <p>{error ? `Backend unavailable: ${error}` : "Checking backend..."}</p>
-          )}
-        </section>
-      </section>
-    </main>
+      </header>
+      <main className="flex min-h-0 flex-1 flex-col">
+        <Chat />
+      </main>
+    </div>
   );
 }

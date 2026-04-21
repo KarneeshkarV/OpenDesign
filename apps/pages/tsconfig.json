@@ -8,8 +8,12 @@
       "ES2022"
     ],
     "types": [
-      "vite/client"
-    ]
+      "vite/client",
+      "node"
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": [
     "src/**/*.ts",
