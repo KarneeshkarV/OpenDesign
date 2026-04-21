@@ -1,0 +1,22 @@
+{
+  "name": "@opendesign/pages",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "deploy": "wrangler pages deploy",
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "preview": "wrangler pages dev",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "react": "19.2.5",
+    "react-dom": "19.2.5"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.0.1",
+    "vite": "8.0.9",
+    "wrangler": "4.84.0"
+  }
+}

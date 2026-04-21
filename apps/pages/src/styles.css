@@ -1,0 +1,116 @@
+:root {
+  color: #f3efe6;
+  background:
+    radial-gradient(circle at top, rgba(255, 212, 110, 0.18), transparent 30%),
+    linear-gradient(135deg, #111111 0%, #1d2938 40%, #3d1f17 100%);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+code,
+pre {
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.panel {
+  width: min(960px, 100%);
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  background: rgba(8, 10, 15, 0.72);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  color: #ffca7a;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.5rem, 6vw, 4.8rem);
+  line-height: 0.95;
+}
+
+.lede {
+  max-width: 42rem;
+  margin: 1rem 0 2rem;
+  color: rgba(243, 239, 230, 0.8);
+  font-size: 1.05rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.card,
+.status {
+  padding: 1.25rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.label {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.card p {
+  margin-bottom: 0;
+  color: rgba(243, 239, 230, 0.72);
+}
+
+.status {
+  margin-top: 1rem;
+}
+
+.status h2 {
+  margin-top: 0;
+}
+
+pre {
+  margin: 0;
+  padding: 1rem;
+  overflow: auto;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 1rem;
+  }
+
+  .panel {
+    padding: 1.25rem;
+  }
+}
