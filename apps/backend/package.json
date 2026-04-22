@@ -8,9 +8,12 @@
     "typecheck": "tsc --project tsconfig.json"
   },
   "dependencies": {
+    "@better-auth/infra": "^0.2.4",
+    "@neondatabase/serverless": "^1.0.1",
     "@ai-sdk/openai": "^2.0.0",
     "ai": "^6.0.116",
-    "zod": "^3.25.76"
+    "better-auth": "^1.6.5",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20260421.1",

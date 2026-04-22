@@ -9,13 +9,15 @@
     ],
     "types": [
       "vite/client",
-      "node"
+      "node",
+      "@cloudflare/workers-types"
     ],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
   "include": [
+    "functions/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "vite.config.ts"

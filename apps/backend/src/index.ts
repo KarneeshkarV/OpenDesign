@@ -1,4 +1,5 @@
 import { handlePreflight, jsonResponse } from "./lib/cors";
+import { getAuth } from "./lib/auth";
 import type { Env } from "./lib/env";
 import { handleChat } from "./routes/chat";
 import { handleHealth } from "./routes/health";
@@ -15,6 +16,13 @@ export default {
       return handleHealth();
     }
 
+    if (
+      pathname.startsWith("/api/auth") &&
+      (request.method === "GET" || request.method === "POST")
+    ) {
+      return getAuth(env).handler(request);
+    }
+
     if (pathname === "/api/chat" && request.method === "POST") {
       return handleChat(request, env);
     }
@@ -22,7 +30,7 @@ export default {
     return jsonResponse(
       {
         message: "OpenDesign backend is running.",
-        endpoints: ["/api/health", "/api/chat"]
+        endpoints: ["/api/health", "/api/auth/*", "/api/chat"]
       },
       { status: 200 }
     );

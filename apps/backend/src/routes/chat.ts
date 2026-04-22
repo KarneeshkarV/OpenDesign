@@ -13,6 +13,7 @@ import {
 import { type RequestHints, systemPrompt } from "../lib/ai/prompts";
 import { getLanguageModel } from "../lib/ai/providers";
 import { getWeather } from "../lib/ai/tools/get-weather";
+import { getAuthSession } from "../lib/auth";
 import { corsHeaders, jsonResponse } from "../lib/cors";
 import type { Env } from "../lib/env";
 import type { ChatMessage } from "../lib/types";
@@ -31,7 +32,7 @@ const userMessageSchema = z.object({
 const postRequestBodySchema = z.object({
   id: z.string(),
   message: userMessageSchema.optional(),
-  messages: z.array(z.record(z.unknown())).optional(),
+  messages: z.array(z.record(z.string(), z.unknown())).optional(),
   selectedChatModel: z.string()
 });
 
@@ -58,6 +59,15 @@ export async function handleChat(
   request: Request,
   env: Env
 ): Promise<Response> {
+  const session = await getAuthSession(request, env);
+
+  if (!session?.session || !session.user) {
+    return jsonResponse(
+      { error: "Authentication required." },
+      { status: 401 }
+    );
+  }
+
   if (!env.OPENAI_API_KEY) {
     return jsonResponse(
       { error: "OPENAI_API_KEY is not configured on the worker." },

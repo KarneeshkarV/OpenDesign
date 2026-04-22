@@ -1,13 +1,10 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useMemo, useRef, useState } from "react";
+import { apiBasePath } from "@/lib/api";
 import { DEFAULT_CHAT_MODEL, type ChatMessage } from "@/lib/types";
 import { MessageInput } from "./message-input";
 import { Messages } from "./messages";
-
-const apiBaseUrl =
-  import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "") ??
-  "http://127.0.0.1:8787";
 
 const generateId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -25,7 +22,8 @@ export function Chat() {
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
-        api: `${apiBaseUrl}/api/chat`,
+        api: `${apiBasePath}/chat`,
+        credentials: "include",
         prepareSendMessagesRequest({ id, messages, body }) {
           return {
             body: {
