@@ -4,6 +4,8 @@ import { LoaderCircle, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthForm } from "@/components/auth-form";
 import { Chat } from "@/components/chat";
+import { Landing } from "@/components/landing";
+import { Wordmark } from "@/components/wordmark";
 import { apiBasePath } from "@/lib/api";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
@@ -52,18 +54,12 @@ function useBackendHealth() {
   return { health, error };
 }
 
-function AppChrome({
-  children,
-  error,
-  health,
-  session
-}: {
-  children: React.ReactNode;
-  error: string | null;
-  health: HealthResponse | null;
-  session: Awaited<ReturnType<typeof authClient.getSession>>["data"];
-}) {
+type Session = Awaited<ReturnType<typeof authClient.getSession>>["data"];
+
+function AppChrome({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
+  const { data: session } = authClient.useSession();
+  const { health, error } = useBackendHealth();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -81,16 +77,17 @@ function AppChrome({
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_30%),linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent_24%)]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.04),transparent)]" />
-
-      <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-border/40 bg-background/80 px-4 backdrop-blur sm:px-6">
+      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between border-b border-white/[0.06] bg-background/80 px-4 backdrop-blur-xl sm:px-6">
         <div className="flex items-center gap-4">
-          <Link to="/" className="text-[13px] font-semibold tracking-tight">
-            OpenDesign
+          <Link to="/" className="inline-flex items-center gap-2">
+            <Wordmark className="size-4" />
+            <span className="text-[13px] font-semibold tracking-[-0.02em]">
+              OpenDesign
+            </span>
           </Link>
+          <span className="h-4 w-px bg-white/[0.08]" />
           <div
-            className="flex items-center gap-2 text-[11px] text-muted-foreground"
+            className="flex items-center gap-2 text-[11px] text-[#8a8a8a]"
             title={
               health
                 ? `backend ok · ${new Date(health.timestamp).toLocaleTimeString()}`
@@ -105,11 +102,11 @@ function AppChrome({
                 health
                   ? "bg-emerald-400"
                   : error
-                    ? "bg-destructive"
-                    : "bg-muted-foreground/60"
+                    ? "bg-[#ff5b4f]"
+                    : "bg-[#666]"
               )}
             />
-            <span className="hidden sm:inline">
+            <span className="hidden font-mono uppercase tracking-[0.18em] sm:inline">
               {health ? "online" : error ? "offline" : "connecting"}
             </span>
           </div>
@@ -117,18 +114,14 @@ function AppChrome({
 
         {session?.user ? (
           <div className="flex items-center gap-3">
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium text-foreground">{userLabel}</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                authenticated
-              </p>
-            </div>
+            <span className="hidden text-[13px] text-[#cfcfcf] sm:inline">
+              {userLabel}
+            </span>
             <Button
               variant="outline"
               size="sm"
               onClick={() => void handleSignOut()}
               disabled={isSigningOut}
-              className="rounded-full border-border/70 bg-card/50 px-3"
             >
               {isSigningOut ? (
                 <LoaderCircle className="size-4 animate-spin" />
@@ -150,12 +143,10 @@ function AppChrome({
 
 function LoadingState() {
   return (
-    <div className="flex flex-1 items-center justify-center px-4">
-      <div className="rounded-3xl border border-border/60 bg-card/55 px-5 py-4 text-sm text-muted-foreground shadow-[0_20px_60px_rgba(0,0,0,0.28)] backdrop-blur">
-        <div className="flex items-center gap-3">
-          <LoaderCircle className="size-4 animate-spin" />
-          <span>Restoring your session...</span>
-        </div>
+    <div className="flex min-h-dvh flex-1 items-center justify-center bg-background px-4">
+      <div className="flex items-center gap-3 rounded-lg bg-white/[0.02] px-4 py-3 shadow-border">
+        <LoaderCircle className="size-4 animate-spin text-[#8a8a8a]" />
+        <span className="text-[13px] text-[#8a8a8a]">Restoring session…</span>
       </div>
     </div>
   );
@@ -168,14 +159,14 @@ function AuthRoute({
 }: {
   mode: "login" | "signup";
   isPending: boolean;
-  session: Awaited<ReturnType<typeof authClient.getSession>>["data"];
+  session: Session;
 }) {
   if (isPending) {
     return <LoadingState />;
   }
 
   if (session?.user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/app" replace />;
   }
 
   return <AuthForm mode={mode} />;
@@ -186,7 +177,7 @@ function ChatRoute({
   session
 }: {
   isPending: boolean;
-  session: Awaited<ReturnType<typeof authClient.getSession>>["data"];
+  session: Session;
 }) {
   if (isPending) {
     return <LoadingState />;
@@ -196,30 +187,36 @@ function ChatRoute({
     return <Navigate to="/login" replace />;
   }
 
-  return <Chat />;
+  return (
+    <AppChrome>
+      <Chat />
+    </AppChrome>
+  );
 }
 
 export default function App() {
-  const { health, error } = useBackendHealth();
   const { data: session, isPending } = authClient.useSession();
 
   return (
-    <AppChrome health={health} error={error} session={session}>
-      <Routes>
-        <Route
-          path="/"
-          element={<ChatRoute session={session} isPending={isPending} />}
-        />
-        <Route
-          path="/login"
-          element={<AuthRoute mode="login" session={session} isPending={isPending} />}
-        />
-        <Route
-          path="/signup"
-          element={<AuthRoute mode="signup" session={session} isPending={isPending} />}
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppChrome>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route
+        path="/app"
+        element={<ChatRoute session={session} isPending={isPending} />}
+      />
+      <Route
+        path="/login"
+        element={
+          <AuthRoute mode="login" session={session} isPending={isPending} />
+        }
+      />
+      <Route
+        path="/signup"
+        element={
+          <AuthRoute mode="signup" session={session} isPending={isPending} />
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

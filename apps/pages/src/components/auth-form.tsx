@@ -1,9 +1,9 @@
 import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, KeyRound, UserRound } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Wordmark } from "@/components/wordmark";
 
 type AuthMode = "login" | "signup";
 
@@ -12,23 +12,16 @@ type AuthFormProps = {
 };
 
 function getAuthErrorMessage(error: unknown) {
-  if (!error) {
-    return "Something went wrong. Please try again.";
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
+  if (!error) return "Something went wrong. Please try again.";
+  if (error instanceof Error && error.message) return error.message;
   if (
     typeof error === "object" &&
     error !== null &&
     "message" in error &&
-    typeof error.message === "string"
+    typeof (error as { message: unknown }).message === "string"
   ) {
-    return error.message;
+    return (error as { message: string }).message;
   }
-
   return "Something went wrong. Please try again.";
 }
 
@@ -49,17 +42,12 @@ export function AuthForm({ mode }: AuthFormProps) {
 
     try {
       if (isLogin) {
-        const result = await authClient.signIn.email({
-          email,
-          password
-        });
-
+        const result = await authClient.signIn.email({ email, password });
         if (result.error) {
           setError(getAuthErrorMessage(result.error));
           return;
         }
-
-        navigate("/", { replace: true });
+        navigate("/app", { replace: true });
         return;
       }
 
@@ -68,27 +56,21 @@ export function AuthForm({ mode }: AuthFormProps) {
         email,
         password
       });
-
       if (signUpResult.error) {
         setError(getAuthErrorMessage(signUpResult.error));
         return;
       }
 
       const sessionResult = await authClient.getSession();
-
       if (!sessionResult.data?.user) {
-        const signInResult = await authClient.signIn.email({
-          email,
-          password
-        });
-
+        const signInResult = await authClient.signIn.email({ email, password });
         if (signInResult.error) {
           setError(getAuthErrorMessage(signInResult.error));
           return;
         }
       }
 
-      navigate("/", { replace: true });
+      navigate("/app", { replace: true });
     } catch (submitError) {
       setError(getAuthErrorMessage(submitError));
     } finally {
@@ -97,171 +79,141 @@ export function AuthForm({ mode }: AuthFormProps) {
   };
 
   return (
-    <section className="mx-auto flex w-full max-w-5xl flex-1 items-center px-4 py-8 sm:px-6 lg:px-8">
-      <div className="grid w-full gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="relative overflow-hidden rounded-[28px] border border-border/60 bg-card/55 p-6 shadow-[0_30px_80px_rgba(0,0,0,0.32)] backdrop-blur xl:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.08),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.05),transparent_28%)]" />
-          <div className="relative flex h-full flex-col justify-between gap-10">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border/80 bg-background/55 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
-                <span className="size-1.5 rounded-full bg-emerald-400" />
-                Better Auth
-              </div>
-              <div className="space-y-3">
-                <h1 className="max-w-xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
-                  {isLogin
-                    ? "Return to the chat workspace without changing the feel."
-                    : "Create an OpenDesign account inside the same quiet shell."}
-                </h1>
-                <p className="max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
-                  The auth layer shares the same tone as the chat surface:
-                  restrained, dark, and functional. Nothing ornamental that
-                  fights the product.
-                </p>
-              </div>
-            </div>
+    <div className="relative flex min-h-dvh flex-col bg-background">
+      <header className="flex items-center justify-between px-6 py-5 sm:px-8">
+        <Link to="/" className="group inline-flex items-center gap-2">
+          <Wordmark className="size-5" />
+          <span className="text-[14px] font-semibold tracking-[-0.02em] text-foreground">
+            OpenDesign
+          </span>
+        </Link>
+        <Link
+          to={isLogin ? "/signup" : "/login"}
+          className="text-[13px] font-medium text-[#8a8a8a] transition-colors hover:text-foreground"
+        >
+          {isLogin ? "Create account" : "Sign in"}
+        </Link>
+      </header>
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                {
-                  label: "Protected chat",
-                  value: "Session-gated"
-                },
-                {
-                  label: "Storage",
-                  value: "Neon first"
-                },
-                {
-                  label: "Backend",
-                  value: "Worker native"
-                }
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-border/60 bg-background/45 p-4"
-                >
-                  <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-foreground">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
+      <main className="flex flex-1 items-center justify-center px-6 pb-16">
+        <div className="w-full max-w-[380px] animate-fade-up">
+          <div className="mb-10 space-y-3 text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#8a8a8a]">
+              {isLogin ? "Welcome back" : "Get started"}
+            </p>
+            <h1 className="text-compressed-md text-[34px] font-semibold text-foreground">
+              {isLogin ? "Sign in to OpenDesign" : "Create your account"}
+            </h1>
+            <p className="text-[14px] leading-relaxed text-[#8a8a8a]">
+              {isLogin
+                ? "Pick up where you left off."
+                : "Start designing with AI in under a minute."}
+            </p>
           </div>
-        </div>
 
-        <div className="relative overflow-hidden rounded-[28px] border border-border/70 bg-background/82 p-6 shadow-[0_24px_70px_rgba(0,0,0,0.35)] backdrop-blur xl:p-8">
-          <div className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
-          <div className="flex h-full flex-col">
-            <div className="mb-8 space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-                {isLogin ? "Sign in" : "Create account"}
-              </p>
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                {isLogin ? "Welcome back." : "Start a new session."}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {isLogin
-                  ? "Use your email and password to continue."
-                  : "Email and password only for v1. Verification and reset flows can be added later."}
-              </p>
-            </div>
-
-            <form className="flex flex-1 flex-col gap-4" onSubmit={handleSubmit}>
-              {!isLogin && (
-                <label className="space-y-2">
-                  <span className="text-sm font-medium text-foreground">
-                    Name
-                  </span>
-                  <div className="relative">
-                    <UserRound className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      autoComplete="name"
-                      className="pl-9"
-                      placeholder="A name for your account"
-                      required
-                    />
-                  </div>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {!isLogin && (
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="auth-name"
+                  className="block text-[13px] font-medium text-foreground"
+                >
+                  Name
                 </label>
-              )}
-
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-foreground">
-                  Email
-                </span>
                 <Input
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="email"
-                  type="email"
-                  placeholder="you@company.com"
+                  id="auth-name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  autoComplete="name"
+                  placeholder="Jane Doe"
                   required
                 />
-              </label>
+              </div>
+            )}
 
-              <label className="space-y-2">
-                <span className="text-sm font-medium text-foreground">
-                  Password
-                </span>
-                <div className="relative">
-                  <KeyRound className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete={isLogin ? "current-password" : "new-password"}
-                    className="pl-9"
-                    minLength={8}
-                    type="password"
-                    placeholder="Minimum 8 characters"
-                    required
-                  />
-                </div>
-              </label>
-
-              {error && (
-                <div
-                  role="alert"
-                  className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
-                >
-                  {error}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                size="lg"
-                disabled={isSubmitting}
-                className="mt-2 h-11 justify-between rounded-xl px-4"
+            <div className="space-y-1.5">
+              <label
+                htmlFor="auth-email"
+                className="block text-[13px] font-medium text-foreground"
               >
-                <span>
-                  {isSubmitting
-                    ? isLogin
-                      ? "Signing in..."
-                      : "Creating account..."
-                    : isLogin
-                      ? "Sign in"
-                      : "Create account"}
-                </span>
-                <ArrowRight className="size-4" />
-              </Button>
-            </form>
-
-            <div className="mt-6 border-t border-border/60 pt-5 text-sm text-muted-foreground">
-              {isLogin ? "Need an account?" : "Already have an account?"}{" "}
-              <Link
-                to={isLogin ? "/signup" : "/login"}
-                className="font-medium text-foreground transition-colors hover:text-primary"
-              >
-                {isLogin ? "Create one" : "Sign in instead"}
-              </Link>
+                Email
+              </label>
+              <Input
+                id="auth-email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+              />
             </div>
-          </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="auth-password"
+                  className="block text-[13px] font-medium text-foreground"
+                >
+                  Password
+                </label>
+                {isLogin && (
+                  <span className="text-[12px] text-[#666]">
+                    Min. 8 characters
+                  </span>
+                )}
+              </div>
+              <Input
+                id="auth-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                minLength={8}
+                type="password"
+                placeholder={isLogin ? "••••••••" : "At least 8 characters"}
+                required
+              />
+            </div>
+
+            {error && (
+              <p role="alert" className="text-[13px] text-[#ff5b4f]">
+                {error}
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              size="lg"
+              disabled={isSubmitting}
+              className="mt-2 w-full"
+            >
+              {isSubmitting
+                ? isLogin
+                  ? "Signing in…"
+                  : "Creating account…"
+                : isLogin
+                  ? "Sign in"
+                  : "Create account"}
+            </Button>
+          </form>
+
+          <p className="mt-8 text-center text-[13px] text-[#8a8a8a]">
+            {isLogin ? "New to OpenDesign?" : "Already have an account?"}{" "}
+            <Link
+              to={isLogin ? "/signup" : "/login"}
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              {isLogin ? "Create an account" : "Sign in"}
+            </Link>
+          </p>
+
+          {!isLogin && (
+            <p className="mt-6 text-center text-[12px] leading-relaxed text-[#666]">
+              By creating an account, you agree to our Terms and Privacy Policy.
+            </p>
+          )}
         </div>
-      </div>
-    </section>
+      </main>
+    </div>
   );
 }
