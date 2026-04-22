@@ -1,116 +1,144 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme inline {
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans:
+    "Geist Sans", "Geist", ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
 :root {
-  color: #f3efe6;
-  background:
-    radial-gradient(circle at top, rgba(255, 212, 110, 0.18), transparent 30%),
-    linear-gradient(135deg, #111111 0%, #1d2938 40%, #3d1f17 100%);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --radius: 0.5rem;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --card: #0f0f0f;
+  --card-foreground: #ededed;
+  --popover: #141414;
+  --popover-foreground: #ededed;
+  --primary: #ffffff;
+  --primary-foreground: #0a0a0a;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+  --muted: #141414;
+  --muted-foreground: #8a8a8a;
+  --accent: #1a1a1a;
+  --accent-foreground: #ededed;
+  --destructive: #ff5b4f;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: rgba(255, 255, 255, 0.18);
+  --focus-blue: hsla(212, 100%, 48%, 1);
+  --focus-ring: rgba(10, 114, 239, 0.28);
 }
 
 * {
   box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+html,
+body,
+#root {
+  min-height: 100vh;
 }
 
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-feature-settings: "liga" 1, "calt" 1, "ss01" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 code,
 pre {
-  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+  font-family: var(--font-mono);
 }
 
-.shell {
-  min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
+::selection {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
 
-.panel {
-  width: min(960px, 100%);
-  padding: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  background: rgba(8, 10, 15, 0.72);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+@utility shadow-border {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.eyebrow {
-  margin: 0 0 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 0.75rem;
-  color: #ffca7a;
+@utility shadow-border-strong {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
-h1 {
-  margin: 0;
-  font-size: clamp(2.5rem, 6vw, 4.8rem);
-  line-height: 0.95;
+@utility text-compressed-xl {
+  letter-spacing: -0.06em;
+  line-height: 1;
 }
 
-.lede {
-  max-width: 42rem;
-  margin: 1rem 0 2rem;
-  color: rgba(243, 239, 230, 0.8);
-  font-size: 1.05rem;
+@utility text-compressed-lg {
+  letter-spacing: -0.04em;
+  line-height: 1.05;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+@utility text-compressed-md {
+  letter-spacing: -0.028em;
+  line-height: 1.15;
 }
 
-.card,
-.status {
-  padding: 1.25rem;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+@utility text-compressed-sm {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-.label {
-  display: inline-block;
-  margin-bottom: 0.65rem;
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.card p {
-  margin-bottom: 0;
-  color: rgba(243, 239, 230, 0.72);
-}
-
-.status {
-  margin-top: 1rem;
-}
-
-.status h2 {
-  margin-top: 0;
-}
-
-pre {
-  margin: 0;
-  padding: 1rem;
-  overflow: auto;
-  border-radius: 14px;
-  background: rgba(0, 0, 0, 0.28);
-}
-
-@media (max-width: 640px) {
-  .shell {
-    padding: 1rem;
+@keyframes pulse-dot {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
   }
-
-  .panel {
-    padding: 1.25rem;
+  40% {
+    transform: translateY(-3px);
+    opacity: 1;
   }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }

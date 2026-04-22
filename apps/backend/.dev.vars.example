@@ -1,0 +1,6 @@
+OPENAI_API_KEY=sk-your-openai-key-here
+BETTER_AUTH_SECRET=replace-with-a-random-32-byte-secret
+BETTER_AUTH_URL=http://localhost:3000
+DATABASE_URL=postgres://user:password@your-neon-host/dbname?sslmode=require
+BETTER_AUTH_API_KEY=
+BETTER_AUTH_TRUSTED_ORIGINS=

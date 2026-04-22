@@ -2,5 +2,8 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "opendesign-pages",
   "pages_build_output_dir": "./dist",
-  "compatibility_date": "2026-04-21"
+  "compatibility_date": "2026-04-21",
+  "vars": {
+    "BACKEND_API_ORIGIN": "https://opendesign-backend.example.workers.dev"
+  }
 }
