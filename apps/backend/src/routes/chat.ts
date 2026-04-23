@@ -2,7 +2,6 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
-  stepCountIs,
   streamText
 } from "ai";
 import { z } from "zod";
@@ -10,9 +9,9 @@ import {
   DEFAULT_CHAT_MODEL,
   allowedModelIds
 } from "../lib/ai/models";
-import { type RequestHints, systemPrompt } from "../lib/ai/prompts";
+import { systemPrompt } from "../lib/ai/prompts";
 import { getLanguageModel } from "../lib/ai/providers";
-import { getWeather } from "../lib/ai/tools/get-weather";
+import { getImageGenerationTool } from "../lib/ai/tools/image-generation";
 import { getAuthSession } from "../lib/auth";
 import { corsHeaders, jsonResponse } from "../lib/cors";
 import type { Env } from "../lib/env";
@@ -35,25 +34,6 @@ const postRequestBodySchema = z.object({
   messages: z.array(z.record(z.string(), z.unknown())).optional(),
   selectedChatModel: z.string()
 });
-
-type CfGeoRequest = Request & {
-  cf?: {
-    latitude?: string;
-    longitude?: string;
-    city?: string;
-    country?: string;
-  };
-};
-
-function extractHintsFromCfRequest(request: Request): RequestHints {
-  const cf = (request as CfGeoRequest).cf;
-  return {
-    latitude: cf?.latitude ?? null,
-    longitude: cf?.longitude ?? null,
-    city: cf?.city ?? null,
-    country: cf?.country ?? null
-  };
-}
 
 export async function handleChat(
   request: Request,
@@ -92,8 +72,6 @@ export async function handleChat(
     ? body.selectedChatModel
     : DEFAULT_CHAT_MODEL;
 
-  const requestHints = extractHintsFromCfRequest(request);
-
   let uiMessages: ChatMessage[];
   if (body.messages && body.messages.length > 0) {
     uiMessages = body.messages as unknown as ChatMessage[];
@@ -112,10 +90,11 @@ export async function handleChat(
     execute: async ({ writer: dataStream }) => {
       const result = streamText({
         model: getLanguageModel(chatModel, env),
-        system: systemPrompt({ requestHints }),
+        system: systemPrompt(),
         messages: modelMessages,
-        stopWhen: stepCountIs(5),
-        tools: { getWeather }
+        tools: {
+          image_generation: getImageGenerationTool(env)
+        }
       });
 
       dataStream.merge(result.toUIMessageStream());

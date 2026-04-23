@@ -1,12 +1,18 @@
-import type { InferUITool, UIMessage } from "ai";
-import type { getWeather } from "./ai/tools/get-weather";
+import type { UIMessage } from "ai";
+import type {
+  ImageGenerationInput,
+  ImageGenerationOutput
+} from "./ai/tools/image-generation";
 
 export type MessageMetadata = {
   createdAt: string;
 };
 
 export type ChatTools = {
-  getWeather: InferUITool<typeof getWeather>;
+  image_generation: {
+    input: ImageGenerationInput;
+    output: ImageGenerationOutput;
+  };
 };
 
 export type ChatMessage = UIMessage<

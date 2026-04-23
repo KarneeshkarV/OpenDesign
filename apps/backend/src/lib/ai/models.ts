@@ -1,4 +1,4 @@
-export const DEFAULT_CHAT_MODEL = "gpt-5-mini";
+export const DEFAULT_CHAT_MODEL = "gpt-5";
 
 export type ChatModel = {
   id: string;
