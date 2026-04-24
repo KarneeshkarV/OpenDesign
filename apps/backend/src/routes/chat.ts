@@ -12,6 +12,7 @@ import {
 import { systemPrompt } from "../lib/ai/prompts";
 import { getLanguageModel } from "../lib/ai/providers";
 import { getImageGenerationTool } from "../lib/ai/tools/image-generation";
+import { getSandboxDelegateTool } from "../lib/ai/tools/sandbox-delegate";
 import { getAuthSession } from "../lib/auth";
 import { corsHeaders, jsonResponse } from "../lib/cors";
 import type { Env } from "../lib/env";
@@ -93,7 +94,24 @@ export async function handleChat(
         system: systemPrompt(),
         messages: modelMessages,
         tools: {
-          image_generation: getImageGenerationTool(env)
+          image_generation: getImageGenerationTool(env),
+          delegate_to_sandbox: getSandboxDelegateTool({
+            env,
+            dataStream,
+            chatId: body.id
+          })
+        },
+        onChunk: ({ chunk }) => {
+          if (chunk.type === "tool-call") {
+            console.log(
+              `[chat] tool-call ${chunk.toolName} id=${chunk.toolCallId}`
+            );
+          }
+        },
+        onStepFinish: (step) => {
+          console.log(
+            `[chat] step finished finishReason=${step.finishReason} toolCalls=${step.toolCalls?.length ?? 0} toolResults=${step.toolResults?.length ?? 0}`
+          );
         }
       });
 

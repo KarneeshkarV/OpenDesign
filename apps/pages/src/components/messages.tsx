@@ -1,7 +1,8 @@
 import { Sparkles } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { ChatMessage } from "@/lib/types";
+import type { ChatMessage, SandboxEvent } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { SandboxEventCard } from "./sandbox-event-card";
 
 type MessagesProps = {
   messages: ChatMessage[];
@@ -45,13 +46,23 @@ export function Messages({ messages, status }: MessagesProps) {
 
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
+  const sandboxEvents = collectSandboxEvents(message);
+  const firstSandboxIdx = message.parts.findIndex(
+    (p) => p.type === "data-sandbox"
+  );
 
   if (isUser) {
     return (
       <div className="flex justify-end">
         <div className="flex w-fit max-w-[min(85%,56ch)] flex-col gap-1 rounded-2xl rounded-br-md border border-border/40 bg-secondary px-3.5 py-2 text-[13px] leading-[1.65] text-secondary-foreground">
           {message.parts.map((part, index) => (
-            <MessagePart key={index} part={part} />
+            <MessagePart
+              key={index}
+              part={part}
+              index={index}
+              sandboxEvents={sandboxEvents}
+              firstSandboxIdx={firstSandboxIdx}
+            />
           ))}
         </div>
       </div>
@@ -67,11 +78,28 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2 text-[13px] leading-[1.65] text-foreground">
         {message.parts.map((part, index) => (
-          <MessagePart key={index} part={part} />
+          <MessagePart
+            key={index}
+            part={part}
+            index={index}
+            sandboxEvents={sandboxEvents}
+            firstSandboxIdx={firstSandboxIdx}
+          />
         ))}
       </div>
     </div>
   );
+}
+
+function collectSandboxEvents(message: ChatMessage): SandboxEvent[] {
+  const events: SandboxEvent[] = [];
+  for (const part of message.parts) {
+    if (part.type === "data-sandbox") {
+      const data = (part as { data: SandboxEvent }).data;
+      if (data) events.push(data);
+    }
+  }
+  return events;
 }
 
 function PendingBubble() {
@@ -100,7 +128,28 @@ function Dot({ delay }: { delay: string }) {
   );
 }
 
-function MessagePart({ part }: { part: ChatMessage["parts"][number] }) {
+function MessagePart({
+  part,
+  index,
+  sandboxEvents,
+  firstSandboxIdx
+}: {
+  part: ChatMessage["parts"][number];
+  index: number;
+  sandboxEvents: SandboxEvent[];
+  firstSandboxIdx: number;
+}) {
+  if (part.type === "data-sandbox") {
+    if (index !== firstSandboxIdx) return null;
+    return <SandboxEventCard events={sandboxEvents} />;
+  }
+
+  if (part.type === "tool-delegate_to_sandbox") {
+    // The SandboxEventCard already shows all progress, suppress the
+    // generic tool-call UI to avoid duplication.
+    return null;
+  }
+
   if (part.type === "text") {
     return <div className="whitespace-pre-wrap break-words">{(part as { text: string }).text}</div>;
   }

@@ -5,4 +5,6 @@ export interface Env {
   DATABASE_URL: string;
   BETTER_AUTH_API_KEY?: string;
   BETTER_AUTH_TRUSTED_ORIGINS?: string;
+  RIVET_ENDPOINT?: string;
+  RIVET_TOKEN?: string;
 }
