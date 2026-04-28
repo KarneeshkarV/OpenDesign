@@ -9,6 +9,13 @@ export type E2bSessionConfig = {
   piModel?: string;
 };
 
+const PI_PREFIX_EXPR = '${HOME:-/home/user}/.local/pi-coding-agent';
+const PI_INSTALL_COMMAND = [
+  `PI_PREFIX="${PI_PREFIX_EXPR}"`,
+  'mkdir -p "$PI_PREFIX"',
+  'npm install -g --no-fund --no-audit --prefix "$PI_PREFIX" @mariozechner/pi-coding-agent'
+].join(" && ");
+
 export class E2bSession {
   private sandbox: Sandbox | null = null;
   private piInstalled = false;
@@ -29,24 +36,24 @@ export class E2bSession {
     const sandboxId = sandbox.sandboxId;
 
     if (!this.piInstalled) {
-      emit({ type: "pi.command", cmd: "npm install -g @mariozechner/pi-coding-agent" });
+      emit({
+        type: "pi.command",
+        cmd: `bash -lc '${PI_INSTALL_COMMAND}'`
+      });
       const stdoutChunks: string[] = [];
       const stderrChunks: string[] = [];
       try {
-        const result = await sandbox.commands.run(
-          "npm install -g @mariozechner/pi-coding-agent",
-          {
-            timeoutMs: 180_000,
-            onStdout: (line: string) => {
-              stdoutChunks.push(line);
-              emit({ type: "pi.stdout", line });
-            },
-            onStderr: (line: string) => {
-              stderrChunks.push(line);
-              emit({ type: "pi.stderr", line });
-            }
+        const result = await sandbox.commands.run(`bash -lc '${PI_INSTALL_COMMAND}'`, {
+          timeoutMs: 180_000,
+          onStdout: (line: string) => {
+            stdoutChunks.push(line);
+            emit({ type: "pi.stdout", line });
+          },
+          onStderr: (line: string) => {
+            stderrChunks.push(line);
+            emit({ type: "pi.stderr", line });
           }
-        );
+        });
         console.log(
           `[sandbox-agent] pi install exitCode=${result.exitCode} stdoutLen=${stdoutChunks.join("").length} stderrLen=${stderrChunks.join("").length}`
         );
@@ -104,19 +111,24 @@ export class E2bSession {
     const splitStderr = createLineSplitter((line) => {
       if (line.trim()) emit({ type: "pi.stderr", line });
     });
-
-    const serializedInstruction = JSON.stringify(instruction);
+    const piRunCommand = [
+      `PI_PREFIX="${PI_PREFIX_EXPR}"`,
+      'export PATH="$PI_PREFIX/bin:$PATH"',
+      'exec "$PI_PREFIX/bin/pi" -p "$PI_INSTRUCTION" --mode json --model "$PI_MODEL"'
+    ].join("; ");
 
     try {
-      const result = await sandbox.commands.run(
-        `pi -p ${serializedInstruction} --mode json --model ${model}`,
-        {
-          envs: { [providerEnvKey]: this.config.piLlmApiKey },
-          timeoutMs: 600_000,
-          onStdout: (data: string) => splitStdout(data),
-          onStderr: (data: string) => splitStderr(data)
-        }
-      );
+      emit({ type: "pi.command", cmd: `bash -lc '${piRunCommand}'` });
+      const result = await sandbox.commands.run(`bash -lc '${piRunCommand}'`, {
+        envs: {
+          [providerEnvKey]: this.config.piLlmApiKey,
+          PI_INSTRUCTION: instruction,
+          PI_MODEL: model
+        },
+        timeoutMs: 600_000,
+        onStdout: (data: string) => splitStdout(data),
+        onStderr: (data: string) => splitStderr(data)
+      });
 
       if (result.exitCode !== 0) {
         emit({

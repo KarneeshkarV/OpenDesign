@@ -10,7 +10,41 @@ type RunInput = {
 // live in `state` because they hold a live socket to the sandbox.
 const sessionByActorId = new Map<string, E2bSession>();
 
+const IDLE_SHUTDOWN_MS = Number(process.env.SANDBOX_IDLE_SHUTDOWN_MS ?? 5 * 60_000);
+const IDLE_SWEEP_MS = Number(process.env.SANDBOX_IDLE_SWEEP_MS ?? 60_000);
+
+let idleSweeper: ReturnType<typeof setInterval> | null = null;
+function ensureIdleSweeper(): void {
+  if (idleSweeper) return;
+  idleSweeper = setInterval(() => {
+    for (const [id, session] of sessionByActorId) {
+      if (session.idleMs() >= IDLE_SHUTDOWN_MS) {
+        console.log(`[sandbox-agent] idle shutdown actor=${id} idleMs=${session.idleMs()}`);
+        sessionByActorId.delete(id);
+        session.shutdown().catch((err) => {
+          console.error(`[sandbox-agent] idle shutdown error actor=${id}:`, err);
+        });
+      }
+    }
+  }, IDLE_SWEEP_MS);
+  if (typeof idleSweeper === "object" && idleSweeper && "unref" in idleSweeper) {
+    (idleSweeper as { unref: () => void }).unref();
+  }
+}
+
+async function disposeSession(actorId: string): Promise<void> {
+  const session = sessionByActorId.get(actorId);
+  if (!session) return;
+  sessionByActorId.delete(actorId);
+  try {
+    await session.shutdown();
+  } catch (err) {
+    console.error(`[sandbox-agent] shutdown error actor=${actorId}:`, err);
+  }
+}
+
 function getSession(actorId: string): E2bSession {
+  ensureIdleSweeper();
   let session = sessionByActorId.get(actorId);
   if (!session) {
     const e2bApiKey = process.env.E2B_API_KEY;
@@ -29,6 +63,17 @@ function getSession(actorId: string): E2bSession {
 }
 
 export const sandboxSession = actor({
+  options: {
+    actionTimeout: 900_000
+  },
+  onSleep: async (c) => {
+    const actorId = String((c as unknown as { id?: string }).id ?? "default");
+    await disposeSession(actorId);
+  },
+  onDestroy: async (c) => {
+    const actorId = String((c as unknown as { id?: string }).id ?? "default");
+    await disposeSession(actorId);
+  },
   state: {
     status: "idle" as SandboxStatus,
     sandboxId: undefined as string | undefined,
@@ -69,11 +114,7 @@ export const sandboxSession = actor({
 
     async shutdown(c): Promise<void> {
       const actorId = String((c as unknown as { id?: string }).id ?? "default");
-      const session = sessionByActorId.get(actorId);
-      if (session) {
-        await session.shutdown();
-        sessionByActorId.delete(actorId);
-      }
+      await disposeSession(actorId);
       c.state.status = "idle";
       c.state.sandboxId = undefined;
     }
