@@ -4,6 +4,25 @@ export type MessageMetadata = {
   createdAt: string;
 };
 
+// Wire contract — must match apps/sandbox-agent/src/lib/events.ts
+export type SandboxStatus =
+  | "idle"
+  | "booting"
+  | "ready"
+  | "running"
+  | "done"
+  | "error";
+
+export type SandboxEvent =
+  | { type: "status"; status: SandboxStatus; sandboxId?: string }
+  | { type: "pi.thinking"; text: string }
+  | { type: "pi.file_write"; path: string; bytes: number }
+  | { type: "pi.command"; cmd: string }
+  | { type: "pi.stdout"; line: string }
+  | { type: "pi.stderr"; line: string }
+  | { type: "pi.done"; summary: string; files: string[] }
+  | { type: "pi.error"; message: string };
+
 export type ChatTools = {
   image_generation: {
     input: {
@@ -17,11 +36,23 @@ export type ChatTools = {
       revisedPrompt?: string;
     };
   };
+  delegate_to_sandbox: {
+    input: { instruction: string };
+    output: {
+      status: SandboxStatus;
+      sandboxId?: string;
+      lastEvent?: SandboxEvent;
+    };
+  };
+};
+
+export type ChatDataParts = {
+  sandbox: SandboxEvent;
 };
 
 export type ChatMessage = UIMessage<
   MessageMetadata,
-  Record<string, never>,
+  ChatDataParts,
   ChatTools
 >;
 

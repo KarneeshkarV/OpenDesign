@@ -1,0 +1,25 @@
+{
+  "name": "@opendesign/sandbox-agent",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./src/index.ts",
+    "./events": "./src/lib/events.ts",
+    "./registry": "./src/registry.ts"
+  },
+  "scripts": {
+    "dev": "bun --watch run src/index.ts",
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@e2b/code-interpreter": "^1.5.1",
+    "rivetkit": "^2.2.1",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "6.0.3"
+  }
+}
